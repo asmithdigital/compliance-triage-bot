@@ -4,85 +4,138 @@ const VERDICT_CONFIG = {
   pass: {
     icon: '✅',
     className: 'pass',
-    title: 'Pass — looks good',
-    summary: 'No significant compliance issues detected. This content appears suitable for publication, pending final legal review.',
+    title: 'Looks good to go',
   },
   fix: {
     icon: '⚠️',
     className: 'fix',
     title: 'Fix before publish',
-    summary: 'Issues found that must be addressed before this content goes live. Review each item below and resolve before submitting to legal.',
   },
   escalate: {
-    icon: '🚨',
+    icon: '🛡️',
     className: 'escalate',
-    title: 'Mandatory escalation',
-    summary: 'Serious compliance risks detected. Do not publish without legal sign-off. Escalate immediately.',
+    title: 'Stop — escalate to legal',
   },
 }
 
-function IssueCard({ issue }) {
+const ACTION_TAG_CONFIG = {
+  fix_yourself: { label: 'You can fix this', className: 'action-fix' },
+  legal_decision: { label: 'Legal needs to decide', className: 'action-legal' },
+  info: { label: 'Good to know', className: 'action-info' },
+}
+
+const SEVERITY_MAP = {
+  blocker: 'blocker',
+  'fix-before-publish': 'warning',
+  warning: 'warning',
+  info: 'info',
+}
+
+const SEVERITY_LABELS = {
+  blocker: 'Blocker',
+  warning: 'Fix first',
+  info: 'Heads up',
+}
+
+function ExpandSection({ label, children }) {
   const [open, setOpen] = useState(false)
 
-  const severityMap = {
-    blocker: 'blocker',
-    'fix-before-publish': 'warning',
-    warning: 'warning',
-    info: 'info',
-  }
-  const severity = severityMap[issue.severity] ?? 'info'
+  return (
+    <div className="expand-section">
+      <button
+        type="button"
+        className={`expand-toggle ${open ? 'open' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span className="expand-toggle-label">{label}</span>
+        <span className="expand-chevron" aria-hidden="true">›</span>
+      </button>
+      <div className={`expand-content ${open ? 'open' : ''}`} aria-hidden={!open}>
+        <div className="expand-content-inner">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
 
-  const badgeLabels = {
-    blocker: 'Blocker',
-    warning: 'Fix before publish',
-    info: 'Info',
-  }
+function IssueCard({ issue }) {
+  const severity = SEVERITY_MAP[issue.severity] ?? 'info'
+  const actionConfig = ACTION_TAG_CONFIG[issue.actionTag] ?? ACTION_TAG_CONFIG.info
 
   return (
     <div className={`issue-card ${severity}`}>
-      <div className="issue-header" onClick={() => setOpen(o => !o)}>
-        <span className={`severity-badge ${severity}`}>{badgeLabels[severity]}</span>
-        <span className="issue-title">{issue.title}</span>
-        <span className={`issue-chevron ${open ? 'open' : ''}`}>▾</span>
+      {/* Layer 1 — always visible */}
+      <div className="issue-layer1">
+        <div className="issue-layer1-top">
+          <span className={`severity-badge ${severity}`}>{SEVERITY_LABELS[severity]}</span>
+          <span className={`action-tag ${actionConfig.className}`}>{actionConfig.label}</span>
+        </div>
+        <h3 className="issue-headline">{issue.headline}</h3>
+        <p className="issue-plain-explanation">{issue.plainExplanation}</p>
+        {issue.suggestedFix && (
+          <div className="issue-fix-inline">
+            <span className="issue-fix-prefix">Fix:</span> {issue.suggestedFix}
+          </div>
+        )}
       </div>
 
-      {open && (
-        <div className="issue-body">
-          {issue.description && (
-            <div className="issue-body-section">
-              <div className="issue-body-label">What's the issue</div>
-              <div className="issue-body-text">{issue.description}</div>
+      {/* Layer 2 — Why this matters */}
+      {(issue.whyItMatters || issue.verbatimQuote) && (
+        <div className="issue-layers">
+          <ExpandSection label="Why this matters">
+            <div className="layer2-content">
+              {issue.whyItMatters && (
+                <p className="layer2-text">{issue.whyItMatters}</p>
+              )}
+              {issue.verbatimQuote && (
+                <div className="issue-quote-block">
+                  <div className="issue-quote-label">Exact wording that triggered this</div>
+                  <blockquote className="issue-quote">{issue.verbatimQuote}</blockquote>
+                </div>
+              )}
             </div>
-          )}
+          </ExpandSection>
 
-          {issue.regulations?.length > 0 && (
-            <div className="issue-body-section">
-              <div className="issue-body-label">Relevant regulations</div>
-              <div className="regulation-tags">
-                {issue.regulations.map(r => (
-                  <span key={r} className="reg-tag">{r}</span>
+          {/* Layer 3 — Legal detail */}
+          {issue.legalReferences?.length > 0 && (
+            <ExpandSection label="Legal detail">
+              <div className="layer3-content">
+                {issue.legalReferences.map((ref, i) => (
+                  <div key={i} className="legal-ref">
+                    <div className="legal-ref-top">
+                      <span className="legal-code">{ref.code}</span>
+                      {ref.plainTranslation && (
+                        <span className="legal-plain"> — {ref.plainTranslation}</span>
+                      )}
+                    </div>
+                    {ref.detail && (
+                      <p className="legal-detail">{ref.detail}</p>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {issue.quote && (
-            <div className="issue-body-section">
-              <div className="issue-body-label">Verbatim from submission</div>
-              <div className="issue-quote">"{issue.quote}"</div>
-            </div>
-          )}
-
-          {issue.fix && (
-            <div className="issue-body-section">
-              <div className="issue-body-label">Suggested fix</div>
-              <div className="issue-fix">{issue.fix}</div>
-            </div>
+            </ExpandSection>
           )}
         </div>
       )}
     </div>
   )
+}
+
+function buildSummaryLine(issues) {
+  const fixYourself = issues.filter(i => i.actionTag === 'fix_yourself').length
+  const legalNeeded = issues.filter(i => i.actionTag === 'legal_decision').length
+  const infoOnly = issues.filter(i => i.actionTag === 'info').length
+
+  const parts = []
+  if (legalNeeded > 0) parts.push(`${legalNeeded} need${legalNeeded === 1 ? 's' : ''} a legal decision`)
+  if (fixYourself > 0) parts.push(`${fixYourself} you can fix yourself`)
+  if (infoOnly > 0) parts.push(`${infoOnly} just a heads up`)
+
+  if (parts.length === 0) return 'No issues found.'
+  return `${issues.length} issue${issues.length !== 1 ? 's' : ''} found — ${parts.join(', ')}.`
 }
 
 export default function TriageReport({ report, loading }) {
@@ -117,34 +170,64 @@ export default function TriageReport({ report, loading }) {
 
   const verdict = VERDICT_CONFIG[report.verdict] ?? VERDICT_CONFIG.fix
   const issues = report.issues ?? []
-  const blockers = issues.filter(i => i.severity === 'blocker')
-  const warnings = issues.filter(i => i.severity === 'fix-before-publish' || i.severity === 'warning')
-  const infos = issues.filter(i => i.severity === 'info')
+
+  const fixYourselfIssues = issues.filter(i => i.actionTag === 'fix_yourself')
+  const legalIssues = issues.filter(i => i.actionTag === 'legal_decision')
+  const infoIssues = issues.filter(i => i.actionTag === 'info')
+
+  const summaryLine = issues.length > 0
+    ? buildSummaryLine(issues)
+    : (report.summary ?? 'No significant issues found.')
+
+  const hasActionLists = fixYourselfIssues.length > 0 || legalIssues.length > 0
 
   return (
     <>
+      {/* Verdict banner */}
       <div className={`verdict-banner ${verdict.className}`}>
-        <div className="verdict-icon">{verdict.icon}</div>
-        <div className="verdict-text">
-          <h3>{verdict.title}</h3>
-          <p>{report.summary ?? verdict.summary}</p>
+        <div className="verdict-icon" aria-hidden="true">{verdict.icon}</div>
+        <div className="verdict-body">
+          <h3 className="verdict-title">{verdict.title}</h3>
+          <p className="verdict-line">{summaryLine}</p>
+
+          {hasActionLists && (
+            <div className="verdict-action-lists">
+              {legalIssues.length > 0 && (
+                <div className="action-list action-list-legal">
+                  <div className="action-list-heading">Legal needs to look at</div>
+                  <ul>
+                    {legalIssues.map((issue, i) => (
+                      <li key={i}>{issue.headline}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {fixYourselfIssues.length > 0 && (
+                <div className="action-list action-list-fix">
+                  <div className="action-list-heading">You can fix these yourself</div>
+                  <ul>
+                    {fixYourselfIssues.map((issue, i) => (
+                      <li key={i}>{issue.headline}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {infoIssues.length > 0 && (
+                <div className="action-list action-list-info">
+                  <div className="action-list-heading">Just a heads up</div>
+                  <ul>
+                    {infoIssues.map((issue, i) => (
+                      <li key={i}>{issue.headline}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {issues.length > 0 && (
-        <div className="issue-stats">
-          {blockers.length > 0 && (
-            <span className="stat-chip blocker">🔴 {blockers.length} blocker{blockers.length !== 1 ? 's' : ''}</span>
-          )}
-          {warnings.length > 0 && (
-            <span className="stat-chip warning">🟡 {warnings.length} fix before publish</span>
-          )}
-          {infos.length > 0 && (
-            <span className="stat-chip info">🔵 {infos.length} info</span>
-          )}
-        </div>
-      )}
-
+      {/* Issues list */}
       <div className="issues-list">
         {issues.map((issue, i) => (
           <IssueCard key={i} issue={issue} />
