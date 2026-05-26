@@ -438,11 +438,11 @@ body {
 }
 
 .action-list-fix .action-list-heading {
-  color: var(--color-green);
+  color: var(--color-red);
 }
 
 .action-list-info .action-list-heading {
-  color: var(--color-blue);
+  color: #6b7280;
 }
 
 .action-list ul {
@@ -467,12 +467,60 @@ body {
   color: var(--color-text-muted);
 }
 
-/* ── Issues list ─────────────────────────────── */
-.issues-list {
-  padding: 16px 20px;
+/* ── Issues body + groups ────────────────────── */
+.issues-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+}
+
+.issue-group {
+  border-top: 1px solid var(--color-border);
+}
+
+.issue-group:first-child {
+  border-top: none;
+}
+
+.issue-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px 10px;
+}
+
+.issue-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.issue-group-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.06);
+  color: var(--color-text-muted);
+  border-radius: 20px;
+  padding: 1px 8px;
+}
+
+.group-fix .issue-group-label {
+  color: var(--color-red);
+}
+
+.group-legal .issue-group-label {
+  color: #6b3fa0;
+}
+
+.group-info .issue-group-label {
+  color: #6b7280;
+}
+
+.issue-group-cards {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* ── Issue cards ─────────────────────────────── */
@@ -495,18 +543,54 @@ body {
   border-left: 4px solid #2980b9;
 }
 
-/* Layer 1 — always visible */
-.issue-layer1 {
-  padding: 13px 14px 13px;
+/* Card header — clickable collapsed view */
+.issue-card-header {
+  padding: 11px 13px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
 }
 
-.issue-layer1-top {
+.issue-card-header:hover {
+  background: #fafbfc;
+}
+
+.issue-card-header-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
+  margin-bottom: 5px;
+  flex-wrap: nowrap;
 }
+
+.card-chevron {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.card-chevron.open {
+  transform: rotate(90deg);
+}
+
+/* Expanded body */
+.issue-expanded-body {
+  border-top: 1px solid var(--color-border);
+}
+
+.issue-expanded-top {
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fafbfc;
+}
+
+/* Remove bottom padding from issue-layer1-top since it no longer exists as a class */
+
 
 .severity-badge {
   font-size: 10px;
@@ -575,7 +659,6 @@ body {
   font-size: 13px;
   color: var(--color-text-secondary);
   line-height: 1.55;
-  margin-bottom: 10px;
 }
 
 .issue-fix-inline {
@@ -596,6 +679,10 @@ body {
 .issue-layers {
   border-top: 1px solid var(--color-border);
   background: #fafbfc;
+}
+
+.issue-expanded-top + .issue-layers {
+  border-top: 1px solid var(--color-border);
 }
 
 .expand-section {
