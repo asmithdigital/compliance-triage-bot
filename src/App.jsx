@@ -68,7 +68,9 @@ export default function App() {
               </span>
             )}
           </div>
-          <TriageReport report={report} loading={loading} />
+          <div className="panel-report-scroll">
+            <TriageReport report={report} loading={loading} />
+          </div>
         </div>
       </main>
 

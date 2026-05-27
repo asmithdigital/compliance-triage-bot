@@ -19,7 +19,7 @@ const VERDICT_CONFIG = {
 }
 
 const ACTION_TAG_CONFIG = {
-  fix_yourself: { label: 'You can fix this', className: 'action-fix' },
+  fix_yourself: { label: 'You need to fix this', className: 'action-fix' },
   legal_decision: { label: 'Legal needs to decide', className: 'action-legal' },
   info: { label: 'Good to know', className: 'action-info' },
 }

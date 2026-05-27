@@ -120,6 +120,15 @@ body {
   min-width: 0;
   position: sticky;
   top: 20px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+}
+
+.panel-report-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .panel-header {
@@ -578,7 +587,7 @@ body {
 
 /* Card header — full-width clickable collapsed view */
 .issue-card-header {
-  padding: 14px 16px;
+  padding: 16px;
   cursor: pointer;
   user-select: none;
   transition: background 0.12s;
@@ -906,6 +915,7 @@ body {
 
   .panel-report {
     position: static;
+    max-height: none;
   }
 
   .app-header {
