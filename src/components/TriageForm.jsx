@@ -17,7 +17,7 @@ const RISK_FLAGS = [
   { key: 'sponsored', label: 'Is this sponsored or influencer content?' },
 ]
 
-export default function TriageForm({ form, setForm, apiKey, setApiKey, onRun, loading }) {
+export default function TriageForm({ form, setForm, onRun, loading }) {
   function update(field, value) {
     setForm(f => ({ ...f, [field]: value }))
   }
@@ -183,21 +183,6 @@ export default function TriageForm({ form, setForm, apiKey, setApiKey, onRun, lo
           value={form.content}
           onChange={e => update('content', e.target.value)}
           placeholder="Paste your content here..."
-        />
-      </div>
-
-      {/* API key */}
-      <div className="form-group">
-        <label className="form-label" htmlFor="apiKey">Anthropic API key <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(optional)</span></label>
-        <span className="form-help">Leave blank to see a demo report. Your key is never stored.</span>
-        <input
-          id="apiKey"
-          type="password"
-          className="form-input"
-          value={apiKey}
-          onChange={e => setApiKey(e.target.value)}
-          placeholder="sk-ant-..."
-          autoComplete="off"
         />
       </div>
 

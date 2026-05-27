@@ -19,13 +19,12 @@ export default function App() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [apiKey, setApiKey] = useState('')
 
   async function handleRunTriage() {
     setLoading(true)
     setReport(null)
     try {
-      const result = await runTriage(form, apiKey)
+      const result = await runTriage(form)
       setReport(result)
     } catch (err) {
       setReport({ error: err.message })
@@ -48,14 +47,12 @@ export default function App() {
         <div className="panel panel-form">
           <div className="panel-header">
             <h2>Content details</h2>
-            <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>* Required to run triage</span>
+            <span className="panel-header-meta">* Required to run triage</span>
           </div>
           <div className="panel-body">
             <TriageForm
               form={form}
               setForm={setForm}
-              apiKey={apiKey}
-              setApiKey={setApiKey}
               onRun={handleRunTriage}
               loading={loading}
             />
@@ -66,7 +63,7 @@ export default function App() {
           <div className="panel-header">
             <h2>Triage report</h2>
             {report && !report.error && (
-              <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+              <span className="panel-header-meta">
                 {report.issues?.length ?? 0} issue{report.issues?.length !== 1 ? 's' : ''} found
               </span>
             )}
